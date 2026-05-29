@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -15,11 +16,6 @@ const schema = z
     email: z.string().email('Invalid email address'),
     password: z.string().min(8, 'Password must be at least 8 characters'),
     confirm_password: z.string(),
-    is_supplier: z.union([
-      z.literal('true').transform(() => true as const),
-      z.literal('false').transform(() => false as const),
-      z.boolean(),
-    ]).default(false),
     company_name: z.string().optional(),
     phone: z.string().optional(),
     whatsapp: z.string().optional(),
@@ -34,16 +30,13 @@ type FormData = z.infer<typeof schema>
 export default function RegisterPage() {
   const router = useRouter()
   const supabase = createClient()
+  const [isSupplier, setIsSupplier] = useState(false)
 
   const {
     register,
     handleSubmit,
-    watch,
     formState: { errors, isSubmitting },
   } = useForm<FormData>({ resolver: zodResolver(schema) })
-
-  const isSupplierRaw = watch('is_supplier')
-  const isSupplier = isSupplierRaw === true || (isSupplierRaw as unknown as string) === 'true'
 
   const onSubmit = async (data: FormData) => {
     const { data: authData, error: signUpError } = await supabase.auth.signUp({
@@ -57,13 +50,14 @@ export default function RegisterPage() {
     }
 
     if (authData.user) {
-      const { error: profileError } = await supabase.from('profiles').upsert({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error: profileError } = await (supabase as any).from('profiles').upsert({
         id: authData.user.id,
         full_name: data.full_name,
         company_name: data.company_name ?? null,
         phone: data.phone ?? null,
         whatsapp: data.whatsapp ?? data.phone ?? null,
-        is_supplier: data.is_supplier,
+        is_supplier: isSupplier,
       })
 
       if (profileError) {
@@ -91,28 +85,30 @@ export default function RegisterPage() {
 
         <div className="bg-white rounded-2xl border border-gray-100 shadow-card p-8">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            {/* Account type */}
+            {/* Account type — managed by useState, not react-hook-form */}
             <div className="grid grid-cols-2 gap-3 mb-2">
-              <label className="cursor-pointer">
-                <input type="radio" value="false" {...register('is_supplier')} className="sr-only" defaultChecked />
-                <div className={`border-2 rounded-xl p-3 text-center text-sm transition-colors ${
+              <button
+                type="button"
+                onClick={() => setIsSupplier(false)}
+                className={`border-2 rounded-xl p-3 text-center text-sm transition-colors ${
                   !isSupplier ? 'border-brand-500 bg-brand-50 text-brand-700' : 'border-gray-200 text-gray-600 hover:border-gray-300'
-                }`}>
-                  <div className="text-xl mb-1">🛒</div>
-                  <div className="font-semibold">Buyer</div>
-                  <div className="text-xs text-gray-500">Browse & buy</div>
-                </div>
-              </label>
-              <label className="cursor-pointer">
-                <input type="radio" value="true" {...register('is_supplier')} className="sr-only" />
-                <div className={`border-2 rounded-xl p-3 text-center text-sm transition-colors ${
+                }`}
+              >
+                <div className="text-xl mb-1">🛒</div>
+                <div className="font-semibold">Buyer</div>
+                <div className="text-xs text-gray-500">Browse &amp; buy</div>
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsSupplier(true)}
+                className={`border-2 rounded-xl p-3 text-center text-sm transition-colors ${
                   isSupplier ? 'border-brand-500 bg-brand-50 text-brand-700' : 'border-gray-200 text-gray-600 hover:border-gray-300'
-                }`}>
-                  <div className="text-xl mb-1">🏗️</div>
-                  <div className="font-semibold">Supplier</div>
-                  <div className="text-xs text-gray-500">Sell & list</div>
-                </div>
-              </label>
+                }`}
+              >
+                <div className="text-xl mb-1">🏗️</div>
+                <div className="font-semibold">Supplier</div>
+                <div className="text-xs text-gray-500">Sell &amp; list</div>
+              </button>
             </div>
 
             <div>

@@ -34,7 +34,7 @@ async function getSuppliers(search?: string): Promise<(Profile & { listing_count
     .in('user_id', ids)
 
   const countMap: Record<string, number> = {}
-  counts?.forEach((r) => {
+  counts?.forEach((r: { user_id: string }) => {
     countMap[r.user_id] = (countMap[r.user_id] ?? 0) + 1
   })
 
