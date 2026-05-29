@@ -15,7 +15,11 @@ const schema = z
     email: z.string().email('Invalid email address'),
     password: z.string().min(8, 'Password must be at least 8 characters'),
     confirm_password: z.string(),
-    is_supplier: z.preprocess((v) => v === 'true' || v === true, z.boolean()).default(false),
+    is_supplier: z.union([
+      z.literal('true').transform(() => true as const),
+      z.literal('false').transform(() => false as const),
+      z.boolean(),
+    ]).default(false),
     company_name: z.string().optional(),
     phone: z.string().optional(),
     whatsapp: z.string().optional(),
