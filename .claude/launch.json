@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "ConstructionBay.mv (Next.js dev)",
+      "runtimeExecutable": "C:\\Users\\phira\\AppData\\Local\\Programs\\nodejs\\node.exe",
+      "runtimeArgs": ["node_modules/next/dist/bin/next", "dev", "--turbopack"],
+      "port": 3000
+    }
+  ]
+}
