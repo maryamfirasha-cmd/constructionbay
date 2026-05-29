@@ -29,7 +29,8 @@ async function getListing(id: string): Promise<Listing | null> {
   const supabase = await createClient()
 
   // Increment view count
-  await supabase.rpc('increment_listing_views', { listing_id: id })
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  await (supabase as any).rpc('increment_listing_views', { listing_id: id })
 
   const { data } = await supabase
     .from('listings')
